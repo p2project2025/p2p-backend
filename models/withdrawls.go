@@ -16,6 +16,7 @@ type WithdrawlRequest struct {
 	CreatedAt     time.Time          `bson:"created_at" json:"created_at"`
 	UserId        primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Status        string             `bson:"status" json:"status"`
+	INRRate         float64            `bson:"inr_rate" json:"inr_rate"`
 }
 
 type WithdrawlRes struct {
@@ -29,4 +30,5 @@ type WithdrawlRes struct {
 	UserId        primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Status        string             `bson:"status" json:"status"`
 	User          UserInfo           `bson:"user" json:"user"`
+	INRRate       float64            `bson:"inr_rate" json:"inr_rate"`
 }

@@ -28,7 +28,13 @@ func (s *DashboardService) GetUserDashboard(userId primitive.ObjectID) (*models.
 		log.Println("Error fetching admin config:", err)
 		return nil, err
 	}
+	usdRate, err := strconv.ParseFloat(cnf.USDTRate, 64)
+	if err != nil {
+		fmt.Println("Error converting string to float64:", err)
+		return res, fmt.Errorf("error converting string to float64: %s", err)
+	}
 	res.SellPrice = cnf.USDTRate
+	res.INRBalance = res.Balance * usdRate
 	res.WalletAddress = cnf.SecureWalletAddress
 
 	return res, nil

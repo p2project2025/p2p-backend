@@ -13,6 +13,7 @@ type DepositRequest struct {
 	CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
 	UserId          primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Status          string             `bson:"status" json:"status"`
+	INRRate         float64            `bson:"inr_rate" json:"inr_rate"`
 }
 
 type DepositRes struct {
@@ -23,6 +24,7 @@ type DepositRes struct {
 	UserId          primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Status          string             `bson:"status" json:"status"`
 	User            UserInfo           `bson:"user" json:"user"`
+	INRRate         float64            `bson:"inr_rate" json:"inr_rate"`
 }
 
 type UserInfo struct {

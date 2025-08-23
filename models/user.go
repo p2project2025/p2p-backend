@@ -14,6 +14,7 @@ type User struct {
 	Password  string             `bson:"password" json:"password"`
 	Role      string             `bson:"role" json:"role"`
 	Balance   float64            `bson:"balance" json:"balance"`
+	INRBalance float64           `json:"inr_balance"`
 	IsBlocked bool               `bson:"is_blocked" json:"is_blocked"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 }
@@ -27,5 +28,6 @@ type UserDash struct {
 	Balance            float64 `json:"balance"`
 	PendingWithdrawals int64   `json:"pending_withdrawals"`
 	SellPrice          string  `json:"sell_price"`
+	INRBalance 		   float64 `json:"inr_balance"`
 	WalletAddress      string  `json:"wallet_address"` //..
 }

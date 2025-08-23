@@ -89,7 +89,21 @@ func (s *UserService) SignInUser(user models.Login) (models.User, error) {
 		return models.User{}, errors.New("Password Mismatch")
 	}
 
+	adminRepo := admin.AdminRepository(&admin.AdminRepo{})
+	cnf, err := adminRepo.Fetch()
+	if err != nil {
+		log.Println("Error fetching admin config:", err)
+		return models.User{}, err
+	}
+	usdRate, err := strconv.ParseFloat(cnf.USDTRate, 64)
+	if err != nil {
+		log.Println("Error converting string to float64:", err)
+		return userData, nil // //cant efffect login
+	}
+
+	userData.INRBalance = usdRate * userData.Balance
 	return userData, nil
+
 }
 
 func (s *UserService) BlockUser(userID primitive.ObjectID, block bool) error {
