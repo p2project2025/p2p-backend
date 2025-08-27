@@ -19,9 +19,9 @@ type CloudinaryResponse struct {
 }
 
 const (
-	CloudinaryAPIKey    = "239243922124375"
-	CloudinaryAPISecret = "yj3z35qj8JxNBFo84sBA6yyDl_5o"
-	CloudinaryCloudName = "dxwnbbcpo"
+	CloudinaryAPIKey    = "957629452533355"
+	CloudinaryAPISecret = "TmUhUE1WccvcTw_aQZvt1MBrKA8"
+	CloudinaryCloudName = "dfh1q6o9j"
 )
 
 // UploadFormFileToCloudinary uploads a Gin uploaded file to Cloudinary using unsigned preset
