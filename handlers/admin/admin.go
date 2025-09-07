@@ -127,3 +127,14 @@ func (h *AdminHandler) UpsertQRCode(c *gin.Context) {
 		"qr_code":   url,
 	}, http.StatusOK)
 }
+
+func (h *AdminHandler) GetLedgerStats(c *gin.Context) {
+	s := admin.AdminServiceInterface(&admin.AdminService{})
+	stats, err := s.GetLedgerStats()
+	if err != nil {
+		response.HandleError(c, err, "Failed to fetch ledger stats", http.StatusInternalServerError)
+		return
+	}
+
+	response.SuccessResponse(c, "Ledger stats fetched successfully", stats, http.StatusOK)
+}

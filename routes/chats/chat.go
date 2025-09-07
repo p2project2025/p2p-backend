@@ -15,5 +15,6 @@ func RegisterChatRoutes(r *gin.Engine) {
 	chatHandler.POST("/", h.CreateChat)
 	chatHandler.GET("/", h.FetchChats)
 	chatHandler.GET("/users", h.GetUniqueChatUsers)
+	chatHandler.PUT("/read", h.UpdateChatsReadStatus)
 
 }

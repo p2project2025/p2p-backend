@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"errors"
 	"net/http"
 	"p2p/models"
 	"p2p/services/chat"
@@ -117,7 +118,7 @@ func (h *ChatHandler) FetchChats(c *gin.Context) {
 	// Receiver from query
 	receiverID := c.Query("receiver_id")
 	if receiverID == "" {
-		response.HandleError(c, nil, "receiver_id is required", http.StatusBadRequest)
+		response.HandleError(c, errors.New("receiver_id is required"), "receiver_id is required", http.StatusBadRequest)
 		return
 	}
 
@@ -170,4 +171,38 @@ func (h *ChatHandler) GetUniqueChatUsers(c *gin.Context) {
 	}
 
 	response.SuccessResponse(c, "Unique chat users fetched successfully", users, http.StatusOK)
+}
+
+func (h *ChatHandler) UpdateChatsReadStatus(c *gin.Context) {
+	var req struct {
+		ChatIDs []string `json:"chat_ids"`
+	}
+
+	if err := c.BindJSON(&req); err != nil {
+		response.HandleError(c, err, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	if len(req.ChatIDs) == 0 {
+		response.HandleError(c, nil, "chat_ids cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	var chatObjIDs []primitive.ObjectID
+	for _, idStr := range req.ChatIDs {
+		objID, err := primitive.ObjectIDFromHex(idStr)
+		if err != nil {
+			response.HandleError(c, err, "Invalid chat_id: "+idStr, http.StatusBadRequest)
+			return
+		}
+		chatObjIDs = append(chatObjIDs, objID)
+	}
+
+	s := chat.ChatServiceInterface(&chat.ChatService{})
+	if err := s.UpdateChatsReadStatus(chatObjIDs); err != nil {
+		response.HandleError(c, err, "Failed to update chat read status", http.StatusInternalServerError)
+		return
+	}
+
+	response.SuccessResponse(c, "Chat read status updated successfully", nil, http.StatusOK)
 }

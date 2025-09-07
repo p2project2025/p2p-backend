@@ -9,8 +9,9 @@ import (
 
 type ChatServiceInterface interface {
 	CreateChat(chatData *models.Chat) error
-	GetChatsBetweenUsers(userA, userB primitive.ObjectID) ([]models.Chatres, error)
-	GetUniqueChatUsers(userID primitive.ObjectID) ([]models.User, error)
+	GetChatsBetweenUsers(userA, userB primitive.ObjectID) (models.ChatsRes, error)
+	GetUniqueChatUsers(userID primitive.ObjectID) ([]models.ChatUsers, error)
+	UpdateChatsReadStatus(chatIDs []primitive.ObjectID) error
 }
 
 type ChatService struct{}
@@ -20,12 +21,17 @@ func (s *ChatService) CreateChat(chatData *models.Chat) error {
 	return repo.CreateChat(chatData)
 }
 
-func (s *ChatService) GetChatsBetweenUsers(userA, userB primitive.ObjectID) ([]models.Chatres, error) {
+func (s *ChatService) GetChatsBetweenUsers(userA, userB primitive.ObjectID) (models.ChatsRes, error) {
 	repo := chats.ChatRepoInterface(&chats.ChatRepo{})
 	return repo.GetChatsBetweenUsers(userA, userB)
 }
 
-func (s *ChatService) GetUniqueChatUsers(userID primitive.ObjectID) ([]models.User, error) {
+func (s *ChatService) GetUniqueChatUsers(userID primitive.ObjectID) ([]models.ChatUsers, error) {
 	repo := chats.ChatRepoInterface(&chats.ChatRepo{})
 	return repo.GetUniqueChatUsers(userID)
+}
+
+func (s *ChatService) UpdateChatsReadStatus(chatIDs []primitive.ObjectID) error {
+	repo := chats.ChatRepoInterface(&chats.ChatRepo{})
+	return repo.UpdateChatsReadStatus(chatIDs)
 }

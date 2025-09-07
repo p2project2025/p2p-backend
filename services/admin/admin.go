@@ -17,6 +17,7 @@ type AdminServiceInterface interface {
 	SignInAdmin(user models.Login) (models.User, error)
 	FetchAdminConfig() (*models.AdminConfigData, error)
 	UpsertAdminConfig(adminConfig models.AdminConfigData) (primitive.ObjectID, error)
+	GetLedgerStats() (*models.LedgerRes, error)
 }
 type AdminService struct{}
 
@@ -108,4 +109,13 @@ func (s *AdminService) UpsertAdminConfig(adminConfig models.AdminConfigData) (pr
 		return primitive.NilObjectID, err
 	}
 	return id, nil
+}
+func (r AdminService) GetLedgerStats() (*models.LedgerRes, error) {
+	repo := admin.AdminRepository(&admin.AdminRepo{})
+	stats, err := repo.GetLedgerStats()
+	if err != nil {
+		log.Println("Error fetching ledger stats:", err)
+		return nil, err
+	}
+	return stats, nil
 }

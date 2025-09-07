@@ -19,5 +19,7 @@ func AdminRoutes(r *gin.Engine) {
 	adminRoutes.POST("/config/usdt", h.UpsertUSDTRate)              // update USDT rate
 	adminRoutes.POST("/config/qrcode", h.UpsertQRCode)              // update QR code via upload
 	adminRoutes.GET("/config", h.FetchAdminConfig)                  // fetch current config
+	adminRoutes.GET("/ledger/stats", h.GetLedgerStats)            // fetch ledger stats
+
 
 }

@@ -17,7 +17,9 @@ import (
 type AdminRepository interface {
 	Upsert(admin models.AdminConfigData) (primitive.ObjectID, error)
 	Fetch() (*models.AdminConfigData, error)
+	GetLedgerStats() (*models.LedgerRes, error)
 }
+
 
 type AdminRepo struct{}
 
@@ -98,4 +100,131 @@ func (r *AdminRepo) Fetch() (*models.AdminConfigData, error) {
 	}
 
 	return &admin, nil
+}
+func (r *AdminRepo) GetLedgerStats() (*models.LedgerRes, error) {
+	depositCollection := db.GetCollection(config.Cfg.DBName, "deposit")
+	withdrawCollection := db.GetCollection(config.Cfg.DBName, "withdrawl")
+	userCollection := db.GetCollection(config.Cfg.DBName, "users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	ledger := &models.LedgerRes{}
+
+	// 1️⃣ Total deposits
+	depCursor, err := depositCollection.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$group", Value: bson.M{"_id": nil, "total": bson.M{"$sum": "$amount"}}}},
+	})
+	if err == nil && depCursor.Next(ctx) {
+		var res struct {
+			Total float64 `bson:"total"`
+		}
+		if err := depCursor.Decode(&res); err == nil {
+			ledger.TotalDeposits = res.Total
+		}
+	}
+	depCursor.Close(ctx)
+
+	// 2️⃣ Withdrawals by status
+	withCursor, err := withdrawCollection.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$group", Value: bson.M{
+			"_id":   "$status",
+			"total": bson.M{"$sum": "$amount"},
+			"count": bson.M{"$sum": 1},
+		}}},
+	})
+	if err == nil {
+		for withCursor.Next(ctx) {
+			var res struct {
+				Status string  `bson:"_id"`
+				Total  float64 `bson:"total"`
+				Count  int64   `bson:"count"`
+			}
+			if err := withCursor.Decode(&res); err == nil {
+				switch res.Status {
+				case "Approved":
+					ledger.TotalWithdrawals += res.Total
+				case "Pending":
+					ledger.TotalPendingWithdrawals = res.Count
+					ledger.PendingWithdrawalsTotal = res.Total
+				case "Rejected":
+					ledger.RejectedWithdrawalsTotal = res.Total
+				}
+			}
+		}
+	}
+	withCursor.Close(ctx)
+
+	// 3️⃣ Current total balance (sum of all user balances)
+	userCursor, err := userCollection.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$group", Value: bson.M{"_id": nil, "total": bson.M{"$sum": "$balance"}}}},
+	})
+	if err == nil && userCursor.Next(ctx) {
+		var res struct {
+			Total float64 `bson:"total"`
+		}
+		if err := userCursor.Decode(&res); err == nil {
+			ledger.CurrentTotalBalance = res.Total
+		}
+	}
+	userCursor.Close(ctx)
+
+	// 4️⃣ Today’s stats
+	startOfDay := time.Now().Truncate(24 * time.Hour)
+
+	// ➤ Deposits today by status
+	depTodayCursor, _ := depositCollection.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"created_at": bson.M{"$gte": startOfDay}}}},
+		{{Key: "$group", Value: bson.M{
+			"_id":   "$status",
+			"total": bson.M{"$sum": "$amount"},
+		}}},
+	})
+	for depTodayCursor.Next(ctx) {
+		var res struct {
+			Status string  `bson:"_id"`
+			Total  float64 `bson:"total"`
+		}
+		_ = depTodayCursor.Decode(&res)
+		switch res.Status {
+		case "Approved":
+			ledger.TodayStats.TotalDepositsApproved = res.Total
+			ledger.TodayStats.TotalDeposits += res.Total
+		case "Pending":
+			ledger.TodayStats.TotalDepositsPending = res.Total
+			ledger.TodayStats.TotalDeposits += res.Total
+		}
+	}
+	depTodayCursor.Close(ctx)
+
+	// ➤ Withdrawals today by status
+	withTodayCursor, _ := withdrawCollection.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"created_at": bson.M{"$gte": startOfDay}}}},
+		{{Key: "$group", Value: bson.M{
+			"_id":   "$status",
+			"total": bson.M{"$sum": "$amount"},
+		}}},
+	})
+	for withTodayCursor.Next(ctx) {
+		var res struct {
+			Status string  `bson:"_id"`
+			Total  float64 `bson:"total"`
+		}
+		_ = withTodayCursor.Decode(&res)
+		switch res.Status {
+		case "Approved":
+			ledger.TodayStats.TotalWithdrawalsApproved = res.Total
+			ledger.TodayStats.TotalWithdrawals += res.Total
+		case "Pending":
+			ledger.TodayStats.TotalWithdrawalsPending = res.Total
+			ledger.TodayStats.TotalWithdrawals += res.Total
+		}
+	}
+	withTodayCursor.Close(ctx)
+
+	// ➤ New users today
+	newUsersCount, _ := userCollection.CountDocuments(ctx, bson.M{"created_at": bson.M{"$gte": startOfDay}})
+	ledger.TodayStats.NewUsers = newUsersCount
+
+	return ledger, nil
 }

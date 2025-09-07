@@ -13,6 +13,7 @@ type Chat struct {
 	FilesUrl  []string           `bson:"files" json:"files"`
 	Message   string             `bson:"message" json:"message"`
 	Timestamp time.Time          `bson:"timestamp" json:"timestamp"`
+	IsRead    bool               `bson:"is_read" json:"is_read"`
 }
 
 type Chatres struct {
@@ -22,4 +23,16 @@ type Chatres struct {
 	FilesUrl  []string           `bson:"files" json:"files"`
 	Message   string             `bson:"message" json:"message"`
 	Timestamp time.Time          `bson:"timestamp" json:"timestamp"`
+	IsRead    bool               `bson:"is_read" json:"is_read"`
+}
+
+type ChatsRes struct {
+	Read   []Chatres `json:"read"`
+	Unread []Chatres `json:"unread"`
+}
+
+type ChatUsers struct {
+	User        User    `json:"user"`
+	UnreadCount int     `json:"unread_count"`
+	LastMessage Chatres `json:"last_message"`
 }
