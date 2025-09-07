@@ -1,38 +1,27 @@
 package models
 
-import (
-	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
-)
-
-type Chat struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Sender    primitive.ObjectID `bson:"sender_id" json:"sender_id"`
-	Receiver  primitive.ObjectID `bson:"receiver_id" json:"receiver_id"`
-	FilesUrl  []string           `bson:"files" json:"files"`
-	Message   string             `bson:"message" json:"message"`
-	Timestamp time.Time          `bson:"timestamp" json:"timestamp"`
-	IsRead    bool               `bson:"is_read" json:"is_read"`
+type AdminConfigData struct {
+	SecureWalletAddress string `json:"secure_wallet_address" bson:"secure_wallet_address"`
+	USDTRate            string `json:"usdt_rate" bson:"usdt_rate"`
+	QRCodeURL           string `json:"qr_code_url" bson:"qr_code_url"`
 }
 
-type Chatres struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Sender    UserInfo           `bson:"sender" json:"sender"`
-	Receiver  UserInfo           `bson:"receiver" json:"receiver"`
-	FilesUrl  []string           `bson:"files" json:"files"`
-	Message   string             `bson:"message" json:"message"`
-	Timestamp time.Time          `bson:"timestamp" json:"timestamp"`
-	IsRead    bool               `bson:"is_read" json:"is_read"`
+type LedgerRes struct {
+	TotalDeposits            float64    `json:"total_deposits"`
+	TotalWithdrawals         float64    `json:"total_withdrawals"`
+	TotalPendingWithdrawals  int64      `json:"total_pending_withdrawals"`
+	CurrentTotalBalance      float64    `json:"current_total_balance"`
+	PendingWithdrawalsTotal  float64    `json:"pending_withdrawals_total"`
+	RejectedWithdrawalsTotal float64    `json:"rejected_withdrawals_total"`
+	TodayStats               TodayStats `json:"today_stats"`
 }
 
-type ChatsRes struct {
-	Read   []Chatres `json:"read"`
-	Unread []Chatres `json:"unread"`
-}
-
-type ChatUsers struct {
-	User        User    `json:"user"`
-	UnreadCount int     `json:"unread_count"`
-	LastMessage Chatres `json:"last_message"`
+type TodayStats struct {
+	TotalWithdrawals         float64 `json:"total_withdrawals"`
+	TotalWithdrawalsPending  float64 `json:"total_withdrawals_pending"`
+	TotalWithdrawalsApproved float64 `json:"total_withdrawals_approved"`
+	TotalDeposits            float64 `json:"total_deposits"`
+	TotalDepositsPending     float64 `json:"total_deposits_pending"`
+	TotalDepositsApproved    float64 `json:"total_deposits_approved"`
+	NewUsers                 int64   `json:"new_users"`
 }
