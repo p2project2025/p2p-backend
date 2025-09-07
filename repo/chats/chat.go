@@ -228,7 +228,6 @@ func (r *ChatRepo) UpdateChatsReadStatus(chatIDs []primitive.ObjectID) error {
 	update := bson.M{
 		"$set": bson.M{
 			"is_read":   true,
-			"timestamp": time.Now(), // optional
 		},
 	}
 
